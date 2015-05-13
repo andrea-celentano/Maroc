@@ -1,0 +1,207 @@
+//#include <TMath.h> // for Sqrt
+#include "../ana/src/TH8500.cpp" // geometry of R8500
+#include "../ana/src/TConnectH8500.cpp"// interface with FE electronics
+
+/*
+metterem 
+SUBSYSTEM=="usb", ATTR{idVendor}=="1556", ATTR{idProduct}=="0388", GROUP="devg3", MODE="0666"
+/etc/udev/rules.d
+nel file 
+20-cypress-maroc.rules
+*/
+
+#define N 4 // number of MAPMT
+
+//this script describes the geometry of SPECT detector.
+
+void geometrySPECT()
+{
+	Th8500 Head2[N];
+
+	
+	TConnectH8500	conn85;
+		
+	Head2[0].SetFe(100); // asic ID  (just for the name)
+	Head2[1].SetFe(101);
+	Head2[2].SetFe(102);
+	Head2[3].SetFe(103);
+	
+	Head2[0].SetGeo(32); // GEOADDRESS!
+	Head2[1].SetGeo(33);
+	Head2[2].SetGeo(34);
+	Head2[3].SetGeo(35);
+
+
+	
+	//------- ROTATION 
+		
+	Head2[0].Rotate(0.0);
+	Head2[1].Rotate(0.0);
+	Head2[2].Rotate(0.0);
+	Head2[3].Rotate(0.0);
+	
+
+	
+	//--------- TRASLATION 
+	
+	Float_t L = Head2[0].GetWitdh(); // any mapmt is ok to get the dimensions
+	Float_t x0	=	0.0;
+	Float_t y0	=	0.0;
+
+	
+	x0 = 0.5*L;
+	y0 = 0.5*L;
+	
+	Head2[0].Translate(+x0,+y0);
+	Head2[1].Translate(-x0,+y0);
+	Head2[2].Translate(-x0,-y0);
+	Head2[3].Translate(+x0,-y0);
+	
+	
+	//---------- PICTURES
+	
+	// Head2 - 2x2 H8500 Matrix
+	
+	Int_t	D  = 368;
+	Int_t linewidth	= 2;
+	Int_t mycolor	= 2;
+	Int_t anode1mark= 8;
+	Int_t anodemark = 6;
+	
+	Float_t A1 = 26.0*1.5; // mm 
+	Float_t A2 = 52.0*1.5; // mm 
+	
+	
+	
+	TCanvas*  img2 = new TCanvas("img2","Image2",1280-D,D+20,D,D);
+	img2->Range(-A2,-A2,A2,A2);
+	TGaxis *axis3 = new TGaxis(-.85*A2,-.85*A2,-.85*A2,.85*A2,-A2,A2,510,"");
+	axis3->SetName("axis3");
+	axis3->Draw();
+	TGaxis *axis4 = new TGaxis(-.85*A2,-.85*A2,.85*A2,-.85*A2,-A2,A2,510,"");
+	axis4->SetName("axis4");
+	axis4->Draw();
+	// Coutour Line with mark on Anodes (special mark for anode 1)
+	for (int j=0; j<N; j++) { // loop on PMTs
+		Double_t x[5] = {Head2[j].GetXVertex(0),Head2[j].GetXVertex(1),Head2[j].GetXVertex(2),Head2[j].GetXVertex(3),Head2[j].GetXVertex(0)};
+		Double_t y[5] = {Head2[j].GetYVertex(0),Head2[j].GetYVertex(1),Head2[j].GetYVertex(2),Head2[j].GetYVertex(3),Head2[j].GetYVertex(0)};
+		TPolyLine *pline = new TPolyLine(5,x,y);
+		pline->SetFillColor(38);
+		pline->SetLineColor(mycolor);
+		pline->SetLineWidth(linewidth);	
+		pline->Draw("");
+		for (int k=1; k<65; k++) {// loop on anodes
+			if (k==1) {
+				printf("Head 2 - H8500\n");
+				printf("GEO ID =  %d\n",Head2[j].GetGeo());
+				printf("FE  ID =  %d\n",Head2[j].GetFe());
+				printf("                             maroc    system \n");
+				printf("ANODE    X[mm]      Y[mm]   channel  channel \n");
+				mark1 = new TMarker(Head2[j].GetX(k),Head2[j].GetY(k),anode1mark);
+			}
+			else {
+				mark1 = new TMarker(Head2[j].GetX(k),Head2[j].GetY(k),anodemark);
+			}
+			mark1->Draw("SAME");
+			printf("%2d     %7.2f    %7.2f     %2d       %2d\n",k,Head2[j].GetX(k),Head2[j].GetY(k),conn85.GetMaroc(k),(Head2[j].GetGeo()*64)+conn85.GetMaroc(k));
+		}
+	}
+	img2->Print("./head2.gif");
+	//img2->DrawClone();
+	delete img2;
+	
+	
+
+	//--------------------------------------------------
+	//Map generation
+	//--------------------------------------------------
+	
+	printf(" PIXEL MAP\n");
+	//[0..4095] Vectors : abs channel, x, y
+	
+	char pixel[4096];
+	Float_t coordX[4096];
+	Float_t coordY[4096];
+	for (int i = 0; i<4096; i++) {
+		pixel[i]=i+1;
+		coordX[i]=0;
+		coordY[i]=0;
+	}
+	int maroc =0;
+	int geoaddress =0;
+	FILE * lout;
+	lout = fopen("./channelmap.txt","w");
+	
+	
+	for (int channel=0; channel<4096; channel++) {
+		maroc = channel%64;
+		geoaddress = channel/64;
+		
+		// Head 2
+		for (int k =0; k<N; k++) {
+			if (Head2[k].GetGeo()==geoaddress) {
+				coordX[channel]=Head2[k].GetX(conn85.GetAnode(maroc));
+				coordY[channel]=Head2[k].GetY(conn85.GetAnode(maroc));
+			}
+		}
+		
+		if(coordX[channel]!=0){
+			printf("%4d %7.2f %7.2f\n",channel,coordX[channel],coordY[channel]);
+			if (channel%64==63) {
+				printf("------------------- end of GEOADDRESS %d\n",geoaddress);
+			}
+			if (maroc%16==15) {
+				printf("*\n");
+			}
+		}
+		if(lout!=NULL){
+			fprintf(lout,"%4d %7.2f %7.2f\n",channel,coordX[channel],coordY[channel]);
+		}
+		
+	}
+	
+	fclose(lout);
+	
+	
+	// Vanno fatte 3 canvas una per ogni testa
+	// quanto segue e' solo un esempio
+	
+	
+	TCanvas*  mycanv3 = new TCanvas("mycanv3","Electronic Channels",600,10,500,500);
+	Float_t A= 110.0; // mm 
+	mycanv3->Range(-A,-A,A,A);
+	
+	TH2F *h2 = new TH2F("h2","Channel Map",150,-75,75,150,-75,75);
+	for (int u=0; u<4096;u++ ) { // loop on all channel
+		if (coordX[u]!=0) {
+			//Electronic channels
+			h2->Fill(coordX[u],coordY[u],u);
+			
+			//Maroc channels (zero is not printed, why?)
+			//h2->Fill(coordX[u],coordY[u],u%64);
+			
+			//Geoaddresses
+			//h2->Fill(coordX[u],coordY[u],u/64);
+			
+			//Backplanes
+			//h2->Fill(coordX[u],coordY[u],u/1024);
+			
+			//Anodes // not robust to change!it works if 8900 are in geo 1 of each bp (17 and 33)
+		
+			//h2->Fill(coordX[u],coordY[u],conn85.GetAnode(u%64)); 
+			
+			
+			
+		}
+	}
+	h2->Draw("text");
+	h2->SetMarkerSize(.6);
+	h2->SetStats(0);
+
+	
+	mycanv3->Print("./channelmap.eps");
+	//mycanv3->DrawClone();
+	delete mycanv3;
+	//gROOT->ProcessLine(".!mv ./channelmap.txt ./Results/iss/");
+
+}

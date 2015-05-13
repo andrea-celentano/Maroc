@@ -1,0 +1,180 @@
+version = "0.2";  	// mandatory
+logfile = "out/Daq.log";// mandatory
+loglevel = 2;		// 0=none, 1=normal, 2=debug, 3=verbose, 4=very verbose ...
+at = "INFN-GE"; 		// where
+
+
+run: 
+	{
+		file_prefix 	= "second_test";
+  		time_preset_sec = 300;
+  		event_preset 	= 5000000;
+	}; 
+//
+// Default configuration file
+//
+
+default:
+{	
+	VME:
+	{
+		vme_enable 	= 0;
+		v792n_addr 	= 0x990000;
+		scaler_limit 	= 1023;
+	};
+	cb: 
+	{ 
+		did = 3,
+		multievent = 1; // 1 = single event, >=2 multievent buffer; 
+		
+		fe: 
+  		{
+			trigger:
+			{
+				hit_en0		= 0xffffff; //0x0000;   //maroc channel [63..56][55..48]
+   				hit_en1		= 0xffffff; //0x000010; //maroc channel [47..40][39..32][31..24]
+   				hit_en2		= 0xffffff; //0x000000; //maroc channel [23..16][15.. 8][7..  0]
+			}
+			cfgReg1:
+			{
+				auto_trigger 	= 0;	// old??
+				test_en_eve 	= 0;
+				test_en_odd 	= 0;
+				hold1_delay 	= 10;   // 10 internal - 30 ext con laser 	// Actual delay=11.5[ns] + hold1_delay * 1.0[ns]  // 80 in ext trig e pilas // 8 bit
+				initial_out_ch 	= 0; 
+				en_auto_trig	= 1;	// SELF TRIGGER
+				en_ext_trig 	= 0;	// EXTERNAL TRIGGER 
+				en_zero_supp 	= 0;	//old??
+				one_sixtyfour 	= 0;
+				led0 		= 0;
+				led1 		= 0;
+			}
+			cfgReg2:
+			{
+				Daq_mode 	= 0; 	// 0=ALL, 1=HIT enabled, 2=OverTHR, 3=none 
+				hit_delay 	= 0;	// 3 bit, 25 ns step
+				TrigMode 	= 1; 	// 0=Fast-or, 1=Mult.Int.Trig algorithm 
+				StartDaqDelay	= 10;   // before 2011/10/12 was 11
+     				FastSettlingTime=  6;			
+      				SlowSettlingTime= 30;
+			}
+
+			
+   			channel_enabled_start 	= 0;    // old??
+   			channel_enabled_stop 	= 63;	// old??
+			daq_thr_def 		= 3840;	// if daq_mode = 2 Threshold for Sparse Read Out 
+ 			
+			mrc2: 
+			{
+      				en_ck 		= 1;	// Enable clock for encoder
+       				cmd_lvds 	= 0;	// Enable internal LVDS/CMOS translator
+       				en_serializer 	= 0;	// Enable encoder for trigger output
+       				cmd_lucid 	= 0;	// use of the LUCID discriminator. Default = 0V = OFF
+       				fs_choice 	= 1;	// choice between Bip(0V) or Unipolar Fast Shaper (3.5V) Default 3.5V
+       				
+				sw_20f 		= 0;	// (default OFF) Choice of Unipolar FS feedback Cf
+       				sw_40f 		= 0;	
+       				
+				sw_25k 		= 0;	// (default OFF) Choice of Unipolar FS feedback Rf
+       				sw_50k 		= 0;
+       				sw_100k 	= 0;
+       			
+				sw_50f 		= 0;	// (default OFF) Choice of Bipolar FS feedback Capacitor
+       				sw_100f 	= 0;
+       				
+				en_adc 		= 0;	// Enable Wilkinson ADC input
+       				h1h2_choice 	= 0;	// Choice between first or second Track and Hold for Wilkinson ADC
+      				valid_ch_select = 1;	// for DC measurements (3.5V).Default 0V
+       				
+				swss_c2 	= 0;	// (default OFF) SlowShaper time constant
+       				swss_c1 	= 0;
+       				swss_c0 	= 0;
+				
+				gain_default	= 32;
+				
+				dac0 		= 0xff;		// 0x800002 FOR MAROC2 // obsolete?
+       				dac1 		= 0xff	;	// 0x805501 FOR MAROC2 // obsolete?
+       				dac2 		= 0x000	;	// 0x80ff01 FOR MAROC2 // obsolete?
+					
+			}; 
+
+       			mrc3:  
+       			{
+				DAC0 = 450; // THRESHOLD,  segnale tra 200 e 600 se small_dac=0
+				DAC1 = 0;
+				
+				preamp:
+				{
+					gain_default 	= 64; 	//Unitary gain =64 // gain if gain_map files don't exist
+					cmd_ss 		= 1; 	// enable SS inputs for charge measures
+           				cmd_fsb 	= 1;	// enable FSB inputs for FSB1 or FSB2
+           				cmd_fsu 	= 1;	// enable FSU inputs for FSU
+				};
+				slowpath:{
+					buffer: {
+						swb_buf_250f 	= 0;	
+       						swb_buf_500f 	= 0;	
+       						swb_buf_1p 	= 0;
+       						swb_buf_2p 	= 0;
+					}	
+					shaper:{
+       						enable_ss 	= 1;	
+       			 			sw_ss_300f 	= 1;	 
+       						sw_ss_600f 	= 1;	 
+       						sw_ss_1200f 	= 0;
+					}
+				}
+				fastpath:{
+					general:{
+           					enb_tristate 	= 1;	// Enable trigger outputs. 
+	  					polar_discri 	= 0;	// trig out polarity,0=High, 1=Low  
+	   					d1_d2 		= 0;	// 0 = FSB1&DAC0, 1=FSB2&DAC1
+	  					cmd_fsb_fsu 	= 0;	// 0 = FSB, 1 = FSU (with DAC0)
+						small_dac 	= 0;	// DAC0 slope	=0 2,3mV/DAC unit; =1 1,1mV/DAC unit
+					}
+					fsu:{
+    						sw_fsu_100k 	= 0;
+		 				sw_fsu_50k 	= 0;
+		 				sw_fsu_25k 	= 0;
+						sw_fsu_40f 	= 1;	// better if ON	
+	 					sw_fsu_20f 	= 1;	// better if ON
+					}	
+					fsb1:{
+
+	 					sw_fsb1_50f 	= 1;	// better if ON		
+	 					sw_fsb1_100f 	= 1;	// better if ON		
+	 					sw_fsb1_100k 	= 0;	
+	 					sw_fsb1_50k 	= 0;
+					}	
+					fsb2: {  			// Half Gain 
+         					sw_fsb2_50f 	= 1;	// better if ON		
+	 					sw_fsb2_100f 	= 0;	
+	 					sw_fsb2_100k 	= 0;	
+	 					sw_fsb2_50k 	= 0;
+					}				
+					dc:{
+	   					valid_dc_fsb2	= 0;	// en FSB2 DC measurements
+	   					valid_dc_fs 	= 1;	// en FSB and FSU DC measurements
+					}
+				} // end of fastpath
+				
+				adc:{
+					h1h2_choice 	= 0;	// first or second T&H for the input of the ADC
+       					en_adc 		= 0; 	// enable ADC conversion inside the ASIC (ON to make the conversion)
+								// Wilkinson ADC parameters
+           				enb_out_adc 	= 1;	// to use the Wilkinson ADC should be off
+	   				inv_start_gray 	= 1;	// to use the Wilkinson ADC should be off
+	   				ramp_8bit 	= 0;
+	   				ramp_10bit 	= 0;
+	   				inv_discri_adc 	= 0;	// ADC discri output could be inverted (Should be OFF)
+
+				}
+				others:{
+	  				en_otabg 	= 0;	// Power pulsing bit for bandgap (not active on MAROC3 test board)
+ 	  				en_dac 		= 0;	// Power pulsing bit for DACs    (not active on MAROC3 test board)
+	  				cmd_ck_mux 	= 0;	// should be off 
+				}
+        		}; // close m3_ext
+  		}; // end card
+	}; // end controller	
+};// end default

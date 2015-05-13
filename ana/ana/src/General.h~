@@ -1,0 +1,98 @@
+#ifndef MRC_GENERAL_H
+#define MRC_GENERAL_H
+
+#define MAX_NAME_LENGH 256
+
+
+#define FECHNUM		64		// Number of Channel per Frontend Card
+#define GEO_DEFAULT 	16  // geoaddress
+
+#define MAX_PIXEL	4096	// MAPMT X 64
+
+
+#define CH_DEFAULT	1024	// electronic channel
+#define CH2_DEFAULT	1025	// electronic channel
+#define CHNNLFIRST	0
+
+#define ADCFIRST	0
+#define ADCLAST		4095
+
+#define PIXX		1280	// Monitor size in Pixel (depends on the particular hw)
+#define PIXY		900		// Monitor size in Pixel (depends on the particular hw)
+
+#define SIZEOFCANV	400
+#define SIZEOFCANVX PIXX-40	//used by Display BP
+#define SIZEOFCANVY 300		// used by Display BP
+
+#define	ADCMIN		1200	// ADC range
+#define	ADCMAX		2600	// ADC range
+#define SLEEPTIME	0.0001	// update time in seconds 
+
+
+
+
+
+#define	YMAX 10000		
+
+
+
+#define TEMP_FNAME "datafile.bin"	// used by private method check_zip
+
+//#define PATH_DATA		"../data/" // Raw files folder used by configuration Reader
+#define PATH_DIAGN		"./Diagnostic/" // folder for Raw file Diagnostic
+#define PATH_GEOM		"./Maps/geometry/"	// folder for Maps of coordinates
+#define PATH_PDSTAL		"./Maps/pedestal/"	// folder for Maps of pedestals 
+#define PATH_GRAPH		"./Spectra/"		// folder for Spectra
+#define PATH_MAP		"./Maps/eleview/"
+
+
+// PATH used as prefix(suffix) for output(input)
+
+#define PATH_ROOTFILE		"../data/parsed/"	
+#define PATH_ROOTFILE_SCAN	"../data/scan/"
+#define BINPATH			"../data/out/"
+#define CFGPATH			"../data/out/"
+
+
+
+#define MRC_VERBOSE 4 // 0= information, 1= +error, 2= +warning, 3= +message, 4= +debug message, 5= +dump 
+
+
+#define MRC_STR "%s[%d] "
+#define MRC_ARG __FUNCTION__, __LINE__
+#define MRC_PRINT(...) fprintf(stderr, ##__VA_ARGS__)
+
+
+#if (MRC_VERBOSE>4)
+#define MRC_DUM(_fmt, ...) MRC_PRINT("DUM:" MRC_STR _fmt, MRC_ARG, ##__VA_ARGS__)
+#else
+#define MRC_DUM(...)
+#endif
+
+#if (MRC_VERBOSE>3)
+#define MRC_DBG(_fmt, ...) MRC_PRINT("DBG:" MRC_STR _fmt, MRC_ARG, ##__VA_ARGS__)
+#else
+#define MRC_DBG(...)
+#endif
+
+#if (MRC_VERBOSE>2)
+#define MRC_MSG(_fmt, ...) MRC_PRINT("MSG:" MRC_STR _fmt, MRC_ARG, ##__VA_ARGS__)
+#else
+#define MRC_MSG(...)
+#endif
+
+#if (MRC_VERBOSE>1)
+#define MRC_WRN(_fmt, ...) MRC_PRINT("WRN:" MRC_STR _fmt, MRC_ARG, ##__VA_ARGS__)
+#else
+#define MRC_WRN(...)
+#endif
+
+#if (MRC_VERBOSE>0)
+#define MRC_ERR(_fmt, ...) MRC_PRINT("ERR:" MRC_STR _fmt, MRC_ARG, ##__VA_ARGS__)
+#else
+#define MRC_ERR(...)
+#endif
+
+#define MRC_INF(_fmt, ...) MRC_PRINT("INF:" MRC_STR _fmt, MRC_ARG, ##__VA_ARGS__)
+
+#endif
