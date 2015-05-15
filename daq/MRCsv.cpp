@@ -218,23 +218,25 @@ double MRCsv::CalculateDuration()
 
 double MRCsv::CalculateRate()
 {
-	printf("**Timer is %ld sec + %ld nsecond\n",fRateMeterStart,fRateMeterStart_ns);
-	printf("**Timer is %ld sec + %ld nsecond\n",fRateMeterStop,fRateMeterStop_ns);
+  double dT=0;
+
+	printf("**Timer start is %ld sec + %ld nsecond\n",fRateMeterStart,fRateMeterStart_ns);
+	printf("**Timer stop is %ld sec + %ld nsecond\n",fRateMeterStop,fRateMeterStop_ns);
 
 /*
 mainpolare tempo start e stop secondi e nanosecondi
 per stimare durata run con alta precisione
 */
+	dT=(fRateMeterStop-fRateMeterStart)+1E-9*(fRateMeterStop_ns+fRateMeterStart_ns);
 
-
-	if ((fRateMeterStop-fRateMeterStart)!=0) {
+	if ((dT)!=0) {
 		printf("\n");
 		printf("# MRC Events\t\t  = %5ld\t[#]\n",fevent);
-		printf("# MRC Time_Real \t  = %.3lf\t[sec] \n",((double)(fRateMeterStop-fRateMeterStart)/GIGA));
-		printf("# MRC Events/Time_Real\t  = %.1lf\t[Hz] \n",(((float) fevent*GIGA)/(fRateMeterStop-fRateMeterStart)));	
+		printf("# MRC Time_Real \t  = %.3lf\t[sec] \n",dT);
+		printf("# MRC Events/Time_Real\t  = %.1lf\t[Hz] \n",(((float) fevent)/(dT)));	
 
-		fduration	= ((double)(fRateMeterStop-fRateMeterStart)/GIGA);
-		frate		= (((float) fevent*GIGA)/(fRateMeterStop-fRateMeterStart));
+		fduration	= dT;
+		frate		= (((float) fevent)/(dT));
 	}else {
 		printf("Something Wrong with Rate Meter\n");
 	}	

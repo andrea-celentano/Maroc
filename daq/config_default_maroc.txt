@@ -6,8 +6,8 @@ at = "INFN-GE"; 		// where
 
 run: 
 	{
-		file_prefix 	= "second_test";
-  		time_preset_sec = 300;
+		file_prefix 	= "gain_test2";
+  		time_preset_sec = 30;
   		event_preset 	= 5000000;
 	}; 
 //
@@ -42,8 +42,8 @@ default:
 				test_en_odd 	= 0;
 				hold1_delay 	= 10;   // 10 internal - 30 ext con laser 	// Actual delay=11.5[ns] + hold1_delay * 1.0[ns]  // 80 in ext trig e pilas // 8 bit
 				initial_out_ch 	= 0; 
-				en_auto_trig	= 1;	// SELF TRIGGER
-				en_ext_trig 	= 0;	// EXTERNAL TRIGGER 
+				en_auto_trig	= 0;	// SELF TRIGGER
+				en_ext_trig 	= 1;	// EXTERNAL TRIGGER 
 				en_zero_supp 	= 0;	//old??
 				one_sixtyfour 	= 0;
 				led0 		= 0;
@@ -100,7 +100,7 @@ default:
 
        			mrc3:  
        			{
-				DAC0 = 450; // THRESHOLD,  segnale tra 200 e 600 se small_dac=0
+				DAC0 = 100; //THRESHOLD,  segnale tra 200 e 600 se small_dac=0
 				DAC1 = 0;
 				
 				preamp:
